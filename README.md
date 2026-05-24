@@ -18,12 +18,28 @@ The notebook compares three models:
 
 The project uses the Hugging Face `poem_sentiment` dataset. Each poem line is classified into one of four labels:
 
-| Label | Meaning |
-|---|---|
-| `negative` | Negative emotional impact |
-| `positive` | Positive emotional impact |
-| `no_impact` | Neutral or no clear emotional impact |
-| `mixed` | Mixed emotional signal |
+<table align="center">
+  <tr>
+    <th>Label</th>
+    <th>Meaning</th>
+  </tr>
+  <tr>
+    <td><code>negative</code></td>
+    <td>Negative emotional impact</td>
+  </tr>
+  <tr>
+    <td><code>positive</code></td>
+    <td>Positive emotional impact</td>
+  </tr>
+  <tr>
+    <td><code>no_impact</code></td>
+    <td>Neutral or no clear emotional impact</td>
+  </tr>
+  <tr>
+    <td><code>mixed</code></td>
+    <td>Mixed emotional signal</td>
+  </tr>
+</table>
 
 The first important point is that the dataset is **not balanced**. The `no_impact` class dominates the dataset, while `mixed` is very rare. This makes the task difficult even before modeling: a classifier can obtain a decent accuracy by favoring the majority class, but that does not mean it handles minority classes well.
 
@@ -34,12 +50,28 @@ The first important point is that the dataset is **not balanced**. The `no_impac
 
 To keep the comparison fair, the notebook builds a new stratified train / validation / test split. This preserves similar class proportions across the three splits.
 
-| Split | Samples |
-|---|---:|
-| Train | 704 |
-| Validation | 176 |
-| Test | 221 |
-| Total | 1,101 |
+<table align="center">
+  <tr>
+    <th>Split</th>
+    <th>Samples</th>
+  </tr>
+  <tr>
+    <td>Train</td>
+    <td align="right">704</td>
+  </tr>
+  <tr>
+    <td>Validation</td>
+    <td align="right">176</td>
+  </tr>
+  <tr>
+    <td>Test</td>
+    <td align="right">221</td>
+  </tr>
+  <tr>
+    <td><strong>Total</strong></td>
+    <td align="right"><strong>1,101</strong></td>
+  </tr>
+</table>
 
 <p align="center">
   <img src="figures/class_distribution_across_splits.png" alt="Class distribution across train validation and test splits" width="560">
@@ -83,12 +115,33 @@ The first Transformer model fine-tunes `distilbert-base-uncased` using the defau
 
 The second Transformer uses the same architecture and the same training setup, but changes the loss function. Because the dataset is imbalanced, the notebook computes class weights from the training split and uses them inside a custom weighted cross-entropy loss.
 
-| Label | Train Count | Class Weight |
-|---|---:|---:|
-| `negative` | 123 | 1.431 |
-| `positive` | 107 | 1.645 |
-| `no_impact` | 443 | 0.397 |
-| `mixed` | 31 | 5.677 |
+<table align="center">
+  <tr>
+    <th>Label</th>
+    <th align="right">Train Count</th>
+    <th align="right">Class Weight</th>
+  </tr>
+  <tr>
+    <td><code>negative</code></td>
+    <td align="right">123</td>
+    <td align="right">1.431</td>
+  </tr>
+  <tr>
+    <td><code>positive</code></td>
+    <td align="right">107</td>
+    <td align="right">1.645</td>
+  </tr>
+  <tr>
+    <td><code>no_impact</code></td>
+    <td align="right">443</td>
+    <td align="right">0.397</td>
+  </tr>
+  <tr>
+    <td><code>mixed</code></td>
+    <td align="right">31</td>
+    <td align="right">5.677</td>
+  </tr>
+</table>
 
 The logic is simple: mistakes on rare classes should matter more than mistakes on the majority class. In this dataset, this is especially important for `mixed`, which has very few examples.
 
@@ -101,21 +154,81 @@ The Transformer models clearly outperform the TF-IDF baseline. This is one of th
 </p>
 <p align="center"><em>Figure 4 — DistilBERT improves strongly over the TF-IDF baseline.</em></p>
 
-| Model | Accuracy | Macro-F1 | Weighted-F1 | Macro Precision | Macro Recall |
-|---|---:|---:|---:|---:|---:|
-| TF-IDF + Logistic Regression | 0.593 | 0.337 | 0.571 | 0.341 | 0.336 |
-| DistilBERT, standard loss | 0.778 | 0.538 | 0.757 | 0.551 | 0.534 |
-| DistilBERT, weighted loss | 0.778 | 0.596 | 0.780 | 0.605 | 0.621 |
+<table align="center">
+  <tr>
+    <th>Model</th>
+    <th align="right">Accuracy</th>
+    <th align="right">Macro-F1</th>
+    <th align="right">Weighted-F1</th>
+    <th align="right">Macro Precision</th>
+    <th align="right">Macro Recall</th>
+  </tr>
+  <tr>
+    <td>TF-IDF + Logistic Regression</td>
+    <td align="right">0.593</td>
+    <td align="right">0.337</td>
+    <td align="right">0.571</td>
+    <td align="right">0.341</td>
+    <td align="right">0.336</td>
+  </tr>
+  <tr>
+    <td>DistilBERT, standard loss</td>
+    <td align="right">0.778</td>
+    <td align="right">0.538</td>
+    <td align="right">0.757</td>
+    <td align="right">0.551</td>
+    <td align="right">0.534</td>
+  </tr>
+  <tr>
+    <td>DistilBERT, weighted loss</td>
+    <td align="right">0.778</td>
+    <td align="right">0.596</td>
+    <td align="right">0.780</td>
+    <td align="right">0.605</td>
+    <td align="right">0.621</td>
+  </tr>
+</table>
 
 The weighted-loss Transformer keeps the same accuracy as the standard Transformer, but improves the metrics that matter most in an imbalanced setting:
 
-| Metric | Standard Loss | Weighted Loss | Difference |
-|---|---:|---:|---:|
-| Accuracy | 0.778 | 0.778 | +0.000 |
-| Macro-F1 | 0.538 | 0.596 | +0.059 |
-| Weighted-F1 | 0.757 | 0.780 | +0.023 |
-| Macro Precision | 0.551 | 0.605 | +0.054 |
-| Macro Recall | 0.534 | 0.621 | +0.087 |
+<table align="center">
+  <tr>
+    <th>Metric</th>
+    <th align="right">Standard Loss</th>
+    <th align="right">Weighted Loss</th>
+    <th align="right">Difference</th>
+  </tr>
+  <tr>
+    <td>Accuracy</td>
+    <td align="right">0.778</td>
+    <td align="right">0.778</td>
+    <td align="right">+0.000</td>
+  </tr>
+  <tr>
+    <td>Macro-F1</td>
+    <td align="right">0.538</td>
+    <td align="right">0.596</td>
+    <td align="right">+0.059</td>
+  </tr>
+  <tr>
+    <td>Weighted-F1</td>
+    <td align="right">0.757</td>
+    <td align="right">0.780</td>
+    <td align="right">+0.023</td>
+  </tr>
+  <tr>
+    <td>Macro Precision</td>
+    <td align="right">0.551</td>
+    <td align="right">0.605</td>
+    <td align="right">+0.054</td>
+  </tr>
+  <tr>
+    <td>Macro Recall</td>
+    <td align="right">0.534</td>
+    <td align="right">0.621</td>
+    <td align="right">+0.087</td>
+  </tr>
+</table>
 
 This means the weighted loss does not simply increase the number of correct predictions overall. Instead, it makes the model more balanced across classes, which is more relevant for this dataset.
 
@@ -123,7 +236,7 @@ This means the weighted loss does not simply increase the number of correct pred
 
 The loss curves also support the choice of the weighted-loss model. With the standard loss, the model learns the dominant structure of the dataset, but the training behavior is more affected by the majority class. The weighted-loss model gives more importance to minority classes and obtains stronger validation behavior in terms of imbalance-sensitive metrics.
 
-<table>
+<table align="center">
   <tr>
     <td align="center" width="50%">
       <img src="figures/loss_standard.png" alt="Training and validation loss for standard DistilBERT" width="360">
@@ -142,10 +255,29 @@ The weighted-loss run performs better on the final metrics, and the loss curves 
 
 On the validation split, the best Macro-F1 is also higher for the weighted-loss model:
 
-| Model | Best Validation Epoch | Best Validation Macro-F1 | Best Validation Accuracy | Best Validation Weighted-F1 |
-|---|---:|---:|---:|---:|
-| DistilBERT, standard loss | 5 | 0.482 | 0.727 | 0.711 |
-| DistilBERT, weighted loss | 4 | 0.599 | 0.750 | 0.749 |
+<table align="center">
+  <tr>
+    <th>Model</th>
+    <th align="right">Best Validation Epoch</th>
+    <th align="right">Best Validation Macro-F1</th>
+    <th align="right">Best Validation Accuracy</th>
+    <th align="right">Best Validation Weighted-F1</th>
+  </tr>
+  <tr>
+    <td>DistilBERT, standard loss</td>
+    <td align="right">5</td>
+    <td align="right">0.482</td>
+    <td align="right">0.727</td>
+    <td align="right">0.711</td>
+  </tr>
+  <tr>
+    <td>DistilBERT, weighted loss</td>
+    <td align="right">4</td>
+    <td align="right">0.599</td>
+    <td align="right">0.750</td>
+    <td align="right">0.749</td>
+  </tr>
+</table>
 
 ## Error Analysis
 
